@@ -1,23 +1,23 @@
 #include <SPI.h>
 #include "Adafruit_MAX31855.h"
 
+//General setup
+#define BaseCanID 0x100
 
-#define MAXCS1   6
-Adafruit_MAX31855 thermocouple1(MAXCS1);
-#define MAXCS2   7
-Adafruit_MAX31855 thermocouple2(MAXCS2);
-#define MAXCS3   8
-Adafruit_MAX31855 thermocouple3(MAXCS3);
-#define MAXCS4   9
-Adafruit_MAX31855 thermocouple4(MAXCS4);
+//Chip select pins
+#define MAXCS1          6
+#define MAXCS2          7
+#define MAXCS3          8
+#define MAXCS4          9
+#define CANMODCS        10
 
-typedef struct record_type
-{
-int one;
-int two;
-int three;
-Adafruit_MAX31855 thermocouple5;
-};
+//Input settings swithes
+#define SW_CANID1       5
+#define SW_CANID2       4
+#define SW_CANBaudRate  3 
+#define SW_Lowpass      2
+
+
 
 Adafruit_MAX31855 thermocouple_channels[4] = {MAXCS1,MAXCS2,MAXCS3,MAXCS4};
 
@@ -38,10 +38,9 @@ void setup() {
 
   Serial.println("MAX31855 test");
   Serial.println("Initializing sensors...");
-  delay(500);
+  
+  delay(500); // wait for MAX chip to stabilize
   for(byte i = 0; i < sizeof(thermocouple_channels)/sizeof(Adafruit_MAX31855) - 1; i++){
-    // wait for MAX chip to stabilize
-    
     Serial.println(sizeof(thermocouple_channels));
     if (!thermocouple_channels[i].begin()) {
       Serial.println("ERROR. Sensor " + i);
@@ -52,6 +51,30 @@ void setup() {
   // OPTIONAL: Can configure fault checks as desired (default is ALL)
   // Multiple checks can be logically OR'd together.
   // thermocouple.setFaultChecks(MAX31855_FAULT_OPEN | MAX31855_FAULT_SHORT_VCC);  // short to GND fault is ignored
+
+  Serial.println("DONE.");
+
+  Serial.println("Reading settings switches...");
+  pinMode(SW_CANID1, INPUT_PULLUP);
+  pinMode(SW_CANID2, INPUT_PULLUP);
+  pinMode(SW_CANBaudRate, INPUT_PULLUP);
+  pinMode(SW_Lowpass, INPUT_PULLUP);
+
+  byte canid_LSB = !digitalRead(SW_CANID1);
+  Serial.print("canid_LSB: ");
+  Serial.println(canid_LSB);
+  byte canid_MSB = !digitalRead(SW_CANID2);
+  Serial.print("canid_MSB: ");
+  Serial.println(canid_MSB);
+  byte canid = canid_MSB << 1 | canid_LSB;
+  Serial.print("CANid: ");
+  Serial.println(canid);
+  byte BaudRate = !digitalRead(SW_CANBaudRate);
+  Serial.print("SW_CANBaudRate: ");
+  Serial.println(BaudRate);
+  byte Lowpass = !digitalRead(SW_Lowpass);
+  Serial.print("SW_Lowpass: ");
+  Serial.println(Lowpass);
 
   Serial.println("DONE.");
 }
@@ -84,5 +107,5 @@ void loop() {
     //Serial.println(thermocouple.readFahrenheit());
   }
   Serial.println();
-  delay(100);
+  delay(10000);
 }
