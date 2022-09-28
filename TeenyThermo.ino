@@ -3,6 +3,7 @@
 
 //General setup
 #define BaseCanID 0x100
+#define UpdateRate 10 //Frontend thermocouple scan rate and CAN-message update rate in Hz.
 
 //Chip select pins
 #define MAXCS1          6
@@ -66,7 +67,7 @@ void setup() {
   byte canid_MSB = !digitalRead(SW_CANID2);
   Serial.print("canid_MSB: ");
   Serial.println(canid_MSB);
-  byte canid = canid_MSB << 1 | canid_LSB;
+  int canid = canid_MSB << 1 | canid_LSB | BaseCanID;
   Serial.print("CANid: ");
   Serial.println(canid);
   byte BaudRate = !digitalRead(SW_CANBaudRate);
@@ -107,5 +108,5 @@ void loop() {
     //Serial.println(thermocouple.readFahrenheit());
   }
   Serial.println();
-  delay(10000);
+  delay(1/UpdateRate*1000); //Crude wait, should use a dynamic time offset depending.
 }
