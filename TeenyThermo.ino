@@ -1,9 +1,14 @@
 #include <SPI.h>
 #include "Adafruit_MAX31855.h"
+#include <mcp2515.h>
 
 //General setup
 #define BaseCanID 0x100
 #define UpdateRate 10 //Frontend thermocouple scan rate and CAN-message update rate in Hz.
+
+struct can_frame canMsg1;
+struct can_frame canMsg2;
+MCP2515 mcp2515(10);
 
 //Chip select pins
 #define MAXCS1          6
@@ -18,20 +23,40 @@
 #define SW_CANBaudRate  3 
 #define SW_Lowpass      2
 
-
-
 Adafruit_MAX31855 thermocouple_channels[4] = {MAXCS1,MAXCS2,MAXCS3,MAXCS4};
 
 void setup() {
   //pinMode(6, OUTPUT); //Chip Select Thermo 2
   //pinMode(7, OUTPUT); //Chip Select Thermo 3
   //pinMode(9, OUTPUT); //Chip Select Thermo 4
-  pinMode(10, OUTPUT); //Chip Select CAN module
+  //pinMode(10, OUTPUT); //Chip Select CAN module
 
   //digitalWrite(6, HIGH);   //Disable Thermo 2
   //digitalWrite(7, HIGH);   //Disable Thermo 3
   //digitalWrite(9, HIGH);   //Disable Thermo 4
-  digitalWrite(10, HIGH);   //Disable CAN module
+  //digitalWrite(10, HIGH);   //Disable CAN module
+
+  canMsg1.can_id  = 0x0F6;
+  canMsg1.can_dlc = 8;
+  canMsg1.data[0] = 0x8E;
+  canMsg1.data[1] = 0x87;
+  canMsg1.data[2] = 0x32;
+  canMsg1.data[3] = 0xFA;
+  canMsg1.data[4] = 0x26;
+  canMsg1.data[5] = 0x8E;
+  canMsg1.data[6] = 0xBE;
+  canMsg1.data[7] = 0x86;
+
+  canMsg2.can_id  = 0x036;
+  canMsg2.can_dlc = 8;
+  canMsg2.data[0] = 0x0E;
+  canMsg2.data[1] = 0x00;
+  canMsg2.data[2] = 0x00;
+  canMsg2.data[3] = 0x08;
+  canMsg2.data[4] = 0x01;
+  canMsg2.data[5] = 0x00;
+  canMsg2.data[6] = 0x00;
+  canMsg2.data[7] = 0xA0;
 
   Serial.begin(9600);
 
@@ -52,6 +77,11 @@ void setup() {
   // OPTIONAL: Can configure fault checks as desired (default is ALL)
   // Multiple checks can be logically OR'd together.
   // thermocouple.setFaultChecks(MAX31855_FAULT_OPEN | MAX31855_FAULT_SHORT_VCC);  // short to GND fault is ignored
+
+  mcp2515.reset();
+  mcp2515.setBitrate(CAN_500KBPS,MCP_8MHZ);
+  mcp2515.setNormalMode();
+
 
   Serial.println("DONE.");
 
@@ -108,5 +138,9 @@ void loop() {
     //Serial.println(thermocouple.readFahrenheit());
   }
   Serial.println();
+
+  mcp2515.sendMessage(&canMsg1);
+  mcp2515.sendMessage(&canMsg2);
+
   delay(1/UpdateRate*1000); //Crude wait, should use a dynamic time offset depending.
 }
