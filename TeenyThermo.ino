@@ -3,7 +3,7 @@
 #include <mcp2515.h>
 
 //General setup
-#define BaseCanID 0x100
+#define BaseCanID 0x600
 #define UpdateRate 10 //Frontend thermocouple scan rate and CAN-message update rate in Hz.
 
 struct can_frame canMsg1;
@@ -35,17 +35,6 @@ void setup() {
   //digitalWrite(7, HIGH);   //Disable Thermo 3
   //digitalWrite(9, HIGH);   //Disable Thermo 4
   //digitalWrite(10, HIGH);   //Disable CAN module
-
-  canMsg1.can_id  = 0x0F6;
-  canMsg1.can_dlc = 8;
-  canMsg1.data[0] = 0x8E;
-  canMsg1.data[1] = 0x87;
-  canMsg1.data[2] = 0x32;
-  canMsg1.data[3] = 0xFA;
-  canMsg1.data[4] = 0x26;
-  canMsg1.data[5] = 0x8E;
-  canMsg1.data[6] = 0xBE;
-  canMsg1.data[7] = 0x86;
 
   canMsg2.can_id  = 0x036;
   canMsg2.can_dlc = 8;
@@ -108,9 +97,22 @@ void setup() {
   Serial.println(Lowpass);
 
   Serial.println("DONE.");
+
+
+  canMsg1.can_id  = canid;
+  canMsg1.can_dlc = 8;
+  canMsg1.data[0] = 0x00;
+  canMsg1.data[1] = 0x00;
+  canMsg1.data[2] = 0x00;
+  canMsg1.data[3] = 0x00;
+  canMsg1.data[4] = 0x00;
+  canMsg1.data[5] = 0x00;
+  canMsg1.data[6] = 0x00;
+  canMsg1.data[7] = 0x00;
 }
 
 void loop() {
+  int canMsgIndex=0;
   for(byte i = 0; i < sizeof(thermocouple_channels)/sizeof(Adafruit_MAX31855) - 1; i++){
     // basic readout test, just print the current temp
     Serial.print("Internal Temp ");
@@ -131,8 +133,12 @@ void loop() {
       Serial.print("Temp");
       Serial.print(i+1);
       Serial.print(":");
-      Serial.print(c);
+      Serial.print(int(c*10));
       Serial.print(",");
+      int test = 0xFF;
+      test = test | int(c*10);
+      canMsg1.data[canMsgIndex++] = int(c*10);
+      canMsg1.data[canMsgIndex++] = int(c*10) >> 8;
     }
     //Serial.print("F = ");
     //Serial.println(thermocouple.readFahrenheit());
