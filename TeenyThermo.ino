@@ -5,6 +5,7 @@
 //General setup
 #define BaseCanID 0x600
 #define UpdateRate 10 //Frontend thermocouple scan rate and CAN-message update rate in Hz.
+#define serialDebug false
 
 struct can_frame canMsg1;
 struct can_frame canMsg2;
@@ -74,6 +75,11 @@ void setup() {
 
   Serial.println("DONE.");
 
+  Serial.print("Delay: ");
+  float delay;
+  delay = float(1)/10;
+  Serial.println(delay,3);
+
   Serial.println("Reading settings switches...");
   pinMode(SW_CANID1, INPUT_PULLUP);
   pinMode(SW_CANID2, INPUT_PULLUP);
@@ -113,28 +119,47 @@ void setup() {
 
 void loop() {
   int canMsgIndex=0;
-  for(byte i = 0; i < sizeof(thermocouple_channels)/sizeof(Adafruit_MAX31855) - 1; i++){
+  for(byte i = 0; i < sizeof(thermocouple_channels)/sizeof(Adafruit_MAX31855); i++){
     // basic readout test, just print the current temp
-    Serial.print("Internal Temp ");
-    Serial.print(i+1);
-    Serial.print(":");
-    Serial.print(thermocouple_channels[i].readInternal());
-    Serial.print(",");
+    if (serialDebug) {
+      Serial.print("Internal Temp ");
+      Serial.print(i+1);
+      Serial.print(":");
+      Serial.print(thermocouple_channels[i].readInternal());
+      Serial.print(",");
+    }
 
     double c = thermocouple_channels[i].readCelsius();
     if (isnan(c)) {
-      Serial.print(i + " sensor fault(s) detected!");
+      if (serialDebug) Serial.print(i + " sensor fault(s) detected!");
       uint8_t e = thermocouple_channels[i].readError();
-      if (e & MAX31855_FAULT_OPEN) Serial.print("FAULT: Thermocouple is open - no connections.");
-      if (e & MAX31855_FAULT_SHORT_GND) Serial.print("FAULT: Thermocouple is short-circuited to GND.");
-      if (e & MAX31855_FAULT_SHORT_VCC) Serial.print("FAULT: Thermocouple is short-circuited to VCC.");
-      Serial.print(",");
+      if (e & MAX31855_FAULT_OPEN){
+        c=0xFFFF;
+        if (serialDebug) Serial.print("FAULT: Thermocouple is open - no connections.");
+        canMsg1.data[canMsgIndex++] = int(c*10);
+        canMsg1.data[canMsgIndex++] = int(c*10) >> 8;
+      } 
+      if (e & MAX31855_FAULT_SHORT_GND){
+        c=0xFFFE;
+        if (serialDebug) Serial.print("FAULT: Thermocouple is short-circuited to GND.");
+        canMsg1.data[canMsgIndex++] = int(c*10);
+        canMsg1.data[canMsgIndex++] = int(c*10) >> 8;
+      } 
+      if (e & MAX31855_FAULT_SHORT_VCC){
+        c=0xFFFD;
+        if (serialDebug) Serial.print("FAULT: Thermocouple is short-circuited to VCC.");
+        canMsg1.data[canMsgIndex++] = int(c*10);
+        canMsg1.data[canMsgIndex++] = int(c*10) >> 8;
+      }
+      if (serialDebug) Serial.print(",");
     } else {
-      Serial.print("Temp");
-      Serial.print(i+1);
-      Serial.print(":");
-      Serial.print(int(c*10));
-      Serial.print(",");
+      if (serialDebug) {
+        Serial.print("Temp");
+        Serial.print(i+1);
+        Serial.print(":");
+        Serial.print(int(c*10));
+        Serial.print(",");
+      }
       int test = 0xFF;
       test = test | int(c*10);
       canMsg1.data[canMsgIndex++] = int(c*10);
@@ -143,10 +168,9 @@ void loop() {
     //Serial.print("F = ");
     //Serial.println(thermocouple.readFahrenheit());
   }
-  Serial.println();
+  if (serialDebug) Serial.println();
 
   mcp2515.sendMessage(&canMsg1);
-  mcp2515.sendMessage(&canMsg2);
-
-  delay(1/UpdateRate*1000); //Crude wait, should use a dynamic time offset depending.
+  //mcp2515.sendMessage(&canMsg2);
+  delay(float(1)/UpdateRate*1000); //Crude wait, should use a dynamic time offset depending.
 }
