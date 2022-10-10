@@ -1,15 +1,29 @@
 #include <SPI.h>
 #include "Adafruit_MAX31855.h"
 #include <mcp2515.h>
+#include <FIR.h>
 
 //General setup
 #define BaseCanID 0x600
 #define UpdateRate 10 //Frontend thermocouple scan rate and CAN-message update rate in Hz.
 #define serialDebug false
 
+struct Thermocouple_channel{
+   int channelNumber;
+   int roll_no;
+   int chip_select;
+   FIR<float, 10> fir_avg;
+   Adafruit_MAX31855 thermocouple_frontend;
+};
+
 struct can_frame canMsg1;
 struct can_frame canMsg2;
 MCP2515 mcp2515(10);
+FIR<float, 10> fir_avg1;
+FIR<float, 10> fir_avg2;
+FIR<float, 10> fir_avg3;
+FIR<float, 10> fir_avg4;
+FIR<float, 10> filters[4];
 
 //Chip select pins
 #define MAXCS1          6
@@ -37,6 +51,12 @@ void setup() {
   //digitalWrite(9, HIGH);   //Disable Thermo 4
   //digitalWrite(10, HIGH);   //Disable CAN module
 
+  float coef_avg[10] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
+  fir_avg1.setFilterCoeffs(coef_avg);
+  fir_avg2.setFilterCoeffs(coef_avg);
+  fir_avg3.setFilterCoeffs(coef_avg);
+  fir_avg4.setFilterCoeffs(coef_avg);
+
   canMsg2.can_id  = 0x036;
   canMsg2.can_dlc = 8;
   canMsg2.data[0] = 0x0E;
@@ -51,6 +71,9 @@ void setup() {
   Serial.begin(9600);
 
   while (!Serial) delay(1); // wait for Serial on Leonardo/Zero, etc
+
+  Serial.print("Moving Average Filter Gain: ");
+  Serial.println(fir_avg1.getGain());
 
   Serial.println("MAX31855 test");
   Serial.println("Initializing sensors...");
