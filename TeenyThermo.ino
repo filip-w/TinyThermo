@@ -15,6 +15,7 @@ struct thermocoupleChannel{
 };
 
 struct can_frame canMsg1;
+enum CAN_SPEED BaudRate;
 
 //Chip select pins
 #define MAXCS1          6
@@ -56,13 +57,8 @@ void setup() {
   }
   Serial.println("DONE.");
 
-  Serial.println("Initializing CAN module...");
-  mcp2515.reset();
-  mcp2515.setBitrate(CAN_500KBPS,MCP_8MHZ);
-  mcp2515.setNormalMode();
-
-  Serial.println("DONE.");
-
+  //Read setting switches
+  //Remember that state switch reading is inverted in relation to physical position
   Serial.println("Reading settings switches...");
   pinMode(SW_CANID1, INPUT_PULLUP);
   pinMode(SW_CANID2, INPUT_PULLUP);
@@ -78,9 +74,20 @@ void setup() {
   int canid = canid_MSB << 1 | canid_LSB | BaseCanID;
   Serial.print("CANid: ");
   Serial.println(canid);
-  byte BaudRate = !digitalRead(SW_CANBaudRate);
+
+  //Read CAN baudrate switch and set baudrate accordingly
+  //Switch state 0 = 250Kbs/s
+  //Switch state 1 = 500Kbs/s
   Serial.print("SW_CANBaudRate: ");
-  Serial.println(BaudRate);
+  if (digitalRead(SW_CANBaudRate)) {
+    BaudRate = CAN_250KBPS;
+    Serial.println("250KBPS");
+  }
+  else {
+    BaudRate = CAN_500KBPS;
+    Serial.println("500KBPS");
+  }
+  
   byte Lowpass = !digitalRead(SW_Lowpass);
   Serial.print("SW_Lowpass: ");
   Serial.println(Lowpass);
@@ -97,6 +104,12 @@ void setup() {
   canMsg1.data[5] = 0x00;
   canMsg1.data[6] = 0x00;
   canMsg1.data[7] = 0x00;
+
+  Serial.println("Initializing CAN module...");
+  mcp2515.reset();
+  mcp2515.setBitrate(BaudRate,MCP_8MHZ);
+  mcp2515.setNormalMode();
+  Serial.println("DONE.");
 }
 
 void loop() {
