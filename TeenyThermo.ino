@@ -11,11 +11,15 @@
 struct thermocoupleChannel{
    int channelNumber;
    Adafruit_MAX31855 thermocoupleFrontend;
-   FIR<float, 10> fir_avg;
+   FIR<double, 10> fir_avg;
 };
 
 struct can_frame canMsg1;
 enum CAN_SPEED BaudRate;
+// For a moving average we use all ones as coefficients.
+double coef_avg[10] = {1., 1., 1., 1., 1., 1., 1., 1., 1., 1.};
+byte Lowpass;
+
 
 //Chip select pins
 #define MAXCS1          6
@@ -48,12 +52,15 @@ void setup() {
   Serial.println("Initializing sensors...");
   
   delay(500); // wait for MAX chip to stabilize
-  for(byte i = 0; i < sizeof(thermocoupleChannels[i])/sizeof(thermocoupleChannel); i++){
-    Serial.println("Init of channel: " + i);
+
+  for(byte i = 0; i < sizeof(thermocoupleChannels)/sizeof(thermocoupleChannel); i++){
     if (!thermocoupleChannels[i].thermocoupleFrontend.begin()) {
       Serial.println("ERROR. Sensor " + i);
       while (1) delay(10);
     }
+
+    // Set the coefficients of the filter
+    thermocoupleChannels[i].fir_avg.setFilterCoeffs(coef_avg);
   }
   Serial.println("DONE.");
 
@@ -88,7 +95,7 @@ void setup() {
     Serial.println("500KBPS");
   }
   
-  byte Lowpass = !digitalRead(SW_Lowpass);
+  Lowpass = !digitalRead(SW_Lowpass);
   Serial.print("SW_Lowpass: ");
   Serial.println(Lowpass);
 
@@ -114,8 +121,8 @@ void setup() {
 
 void loop() {
   int canMsgIndex=0;
+  double c;
   for(byte i = 0; i < sizeof(thermocoupleChannels)/sizeof(thermocoupleChannels[0]); i++){
-    // basic readout test, just print the current temp
     if (serialDebug) {
       Serial.print("Internal Temp ");
       Serial.print(i+1);
@@ -124,25 +131,31 @@ void loop() {
       Serial.print(",");
     }
 
-    double c = thermocoupleChannels[i].thermocoupleFrontend.readCelsius();
+    if (!Lowpass) {
+      c = thermocoupleChannels[i].thermocoupleFrontend.readCelsius();
+    }
+    else{
+      c = thermocoupleChannels[i].fir_avg.processReading(thermocoupleChannels[i].thermocoupleFrontend.readCelsius());
+    }
+      
     if (isnan(c)) {
-      if (serialDebug) Serial.print(i + " sensor fault(s) detected!");
+      if (serialDebug) Serial.print("Fault(s) detected!");
       uint8_t e = thermocoupleChannels[i].thermocoupleFrontend.readError();
       if (e & MAX31855_FAULT_OPEN){
         c=0xFFFF;
-        if (serialDebug) Serial.print("FAULT: Thermocouple is open - no connections.");
+        if (serialDebug) Serial.print("Open - no connections.");
         canMsg1.data[canMsgIndex++] = int(c*10);
         canMsg1.data[canMsgIndex++] = int(c*10) >> 8;
       } 
       if (e & MAX31855_FAULT_SHORT_GND){
         c=0xFFFE;
-        if (serialDebug) Serial.print("FAULT: Thermocouple is short-circuited to GND.");
+        if (serialDebug) Serial.print("Short-circuited to GND.");
         canMsg1.data[canMsgIndex++] = int(c*10);
         canMsg1.data[canMsgIndex++] = int(c*10) >> 8;
       } 
       if (e & MAX31855_FAULT_SHORT_VCC){
         c=0xFFFD;
-        if (serialDebug) Serial.print("FAULT: Thermocouple is short-circuited to VCC.");
+        if (serialDebug) Serial.print("Short-circuited to VCC.");
         canMsg1.data[canMsgIndex++] = int(c*10);
         canMsg1.data[canMsgIndex++] = int(c*10) >> 8;
       }
