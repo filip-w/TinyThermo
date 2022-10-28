@@ -1,0 +1,23 @@
+ID,Name,Designator,Footprint,Quantity,Manufacturer Part,Farnell Part,Manufacturer,Supplier,Supplier Part,Price [sek],Sum price [sek]
+1,2.2u 35v,C1,CASE-A_3216,1,,2524560,,,,"0,928","0,928"
+2,0.33u 35v,C2,CASE-A_3216,1,,1457422,,,,,0
+3,47u 10v,C3,CASE-A_3216,1,,2491477,,,,,0
+4,2.2u 16v,C4,CASE-A_3216,1,,197233,,,,,0
+5,0.1u 10v,"C5,C6,C9,C11,C13",C0603,5,,3880987,,,,,0
+6,10n 10v,"C7,C8,C10,C12",C0603,4,,2470449,,,,,0
+7,HDR-F-2.54_1x2,H1,HDR-F-2.54_1X2,2,,1593458,,LCSC,C49661,00.38,01.16
+8,PCC-SMD-20,"J1,J2,J3,J4",OMEGA_PCC-SMD-20,8,,3409359,,,,17.14,17.52
+9,ARDUINO-NANO-3.0#ISP,M1,ARDUINO-NANO-3.0#ISP,1,,,,,,87,87
+10,M12 Panel to PCB Connector 5pin,U1,M12 PANEL TO PCB CONNECTOR 5PIN,1,T4145015051-001,,TE Connectivity,,T4145015051-001,89,89
+11,Mini DC - DC buck converter setoutput,U2,MINI-DC-DC-BUCK,1,,,,,,9,9
+12,MCP2515-CAN-BUS-MODULE,U3,MCP2515-CAN-MODULE,1,,,,,,75,75
+13,4-POS-DIP,U3,4-POS-DIP-SMD,1,,IKN0403000,,,,12,12
+14,logic shifter,"U5,U6",LOGIC SHIFTER,2,,,,,,22,44
+15,MAX31855KASA+T,"U7,U8,U9,U10",SO-8_L4.9-W3.9-P1.27-LS5.9-BL,4,MAX31855KASA+T,2515622,MAXIM,LCSC,C52028,"83,37","333,48"
+16,15pin header (Arduino nano),,,2,,3225931,,,,,0
+17,1455l802BK box,,,1,,2988628,,,,207,207
+18,621 bracket,,,2,,2909361,,,,04.42,09.24
+19,6pin header levelshifter,,,4,,1593462,,,,,0
+20,4 pin header powersupply,,,1,,1593460,,,,,0
+21,7 pin header Can module,,,1,,2984569,,,,,0
+,,,,,,,,,,,"863,6"
