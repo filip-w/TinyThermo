@@ -15,9 +15,8 @@ ID,Name,Designator,Footprint,Quantity,Manufacturer Part,Farnell Part,Manufacture
 14,logic shifter,"U5,U6",LOGIC SHIFTER,2,,,,,,22,44
 15,MAX31855KASA+T,"U7,U8,U9,U10",SO-8_L4.9-W3.9-P1.27-LS5.9-BL,4,MAX31855KASA+T,2515622,MAXIM,LCSC,C52028,"83,37","333,48"
 16,15pin header (Arduino nano),,,2,,3225931,,,,,0
-17,1455l802BK box,,,1,,2988628,,,,207,207
+17,1455l801BK box,,,1,,2988624,,,,277,277
 18,621 bracket,,,2,,2909361,,,,04.42,09.24
 19,6pin header levelshifter,,,4,,1593462,,,,,0
 20,4 pin header powersupply,,,1,,1593460,,,,,0
 21,7 pin header Can module,,,1,,2984569,,,,,0
-,,,,,,,,,,,"863,6"
