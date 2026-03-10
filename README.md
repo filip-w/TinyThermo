@@ -1,6 +1,8 @@
 # TinyThermo
 Low-cost and accurate open source thermocouple to CAN module for the DIY enthusiast.
 
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/80187e6d-715e-47c7-9227-1a5249bd52f6" />
+
 Modular design, with readily available modules.
 Based on Arduino Nano, MAX31855 and MCP2515 CAN-module.
 
@@ -10,6 +12,9 @@ Librarys used
 - Adafruit MAX31855 library by Adafruit
 
 ## Hardware
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/5fbc146a-c936-4e5f-b40e-dcf6a95dc516" />
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/850733ff-27ba-4beb-9b90-48625380da53" />
+
 ### Connectors
 Use only **Type K Miniature Mini plug**
 - Keep in mind that it is polarity sensitive and only fits in one direction.
